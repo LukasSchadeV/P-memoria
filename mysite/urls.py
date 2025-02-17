@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from inicio.views import pagina_inicio
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', pagina_inicio, name='pagina_inicio'),  # Página de inicio
 ]
