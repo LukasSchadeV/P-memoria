@@ -2,29 +2,40 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ problema.titulo }}</h1>
+    <h1 class="text-primary fw-bold">{{ problema.titulo }}</h1>
+
+    <div class="card shadow-sm p-4 mt-3">
+        <h3 class="text-secondary">📜 Enunciado</h3>
+        <pre class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap;">{{ problema.enunciado }}</pre>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h3 class="text-success">📥 Ejemplo de Entrada</h3>
+                <pre class="bg-dark text-white p-3 rounded">{{ problema.entrada_ejemplo }}</pre>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h3 class="text-danger">📤 Ejemplo de Salida</h3>
+                <pre class="bg-dark text-white p-3 rounded">{{ problema.salida_ejemplo }}</pre>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mt-5 text-primary">💻 Code Editor</h2>
+    <textarea id="code-editor" class="w-100 h-60 p-3 bg-dark text-white rounded border-0" placeholder="Escribe tu código en C aquí..." style="min-height: 300px;"></textarea>
     
-    <h3>Enunciado</h3>
-    <p>{{ problema.enunciado }}</p>
-
-    <h3>Ejemplo de Entrada</h3>
-    <pre>{{ problema.entrada_ejemplo }}</pre>
-
-    <h3>Ejemplo de Salida</h3>
-    <pre>{{ problema.salida_ejemplo }}</pre>
-
-    <h2 class="mt-4">Code Editor</h2>
-    <textarea id="code-editor" class="w-100 h-40 p-2 bg-dark text-white rounded" placeholder="Escribe tu código en C aquí..."></textarea>
-    
-    <div class="d-flex justify-content-between mt-3">
-        <button id="run-code" class="btn btn-primary">Ejecutar</button>
-        <button id="submit-code" class="btn btn-success">Enviar</button>
+    <div class="d-flex justify-content-between mt-4">
+        <button id="run-code" class="btn btn-primary px-4 py-2">▶ Ejecutar</button>
+        <button id="submit-code" class="btn btn-success px-4 py-2">✅ Enviar</button>
     </div>
     
-    <h3 class="mt-4">Salida</h3>
-    <pre id="output" class="bg-light text-dark p-2 rounded h-20 overflow-auto"></pre>
+    <h3 class="mt-5">📌 Salida</h3>
+    <pre id="output" class="bg-light text-dark p-3 rounded h-20 overflow-auto"></pre>
 
-    <a href="{% url 'pagina_inicio' %}" class="btn btn-secondary mt-3">Volver</a>
+    <a href="{% url 'pagina_inicio' %}" class="btn btn-secondary mt-4">🔙 Volver</a>
 </div>
 
 <script>
@@ -34,6 +45,7 @@
       const problemId = '{{ problema.id }}';
       
       outputElement.textContent = 'Ejecutando...';
+      outputElement.classList.remove("text-danger", "formatted-error");
       
       try {
         const response = await fetch(`/juez/problema/${problemId}/execute/`, {
@@ -44,8 +56,13 @@
         
         const result = await response.json();
         outputElement.textContent = result.output || 'Error en la ejecución.';
+        
+        if (result.output.includes("error")) {
+          outputElement.classList.add("text-danger", "formatted-error");
+        }
       } catch (error) {
         outputElement.textContent = 'Error: ' + error.message;
+        outputElement.classList.add("text-danger", "formatted-error");
       }
     });
 
@@ -55,6 +72,7 @@
       const problemId = '{{ problema.id }}';
       
       outputElement.textContent = 'Enviando...';
+      outputElement.classList.remove("text-danger", "formatted-error");
       
       try {
         const response = await fetch(`/juez/problema/${problemId}/submit/`, {
@@ -65,9 +83,25 @@
         
         const result = await response.json();
         outputElement.textContent = `Estado: ${result.status} - ${result.message}`;
+        
+        if (result.status === 401) {
+          outputElement.classList.add("text-danger", "formatted-error");
+        }
       } catch (error) {
         outputElement.textContent = 'Error: ' + error.message;
+        outputElement.classList.add("text-danger", "formatted-error");
       }
     });
 </script>
+
+<style>
+  .formatted-error {
+    white-space: pre-wrap;
+    font-family: monospace;
+    background-color: #ffebeb;
+    border-left: 5px solid red;
+    padding: 10px;
+  }
+</style>
+
 {% endblock %}

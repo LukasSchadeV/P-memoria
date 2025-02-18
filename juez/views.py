@@ -102,7 +102,13 @@ def submit_c_code(request, problema_id):
             )
 
             if compile_process.returncode != 0:
-                return JsonResponse({"status": 401, "message": "Compilation Error:\n" + compile_process.stderr}, status=401)
+                # Filtrar las rutas del error de compilación
+                error_message = compile_process.stderr
+                error_message = "\n".join(
+                    line for line in error_message.split("\n") if not line.startswith(temp_source_path)
+                ).strip()
+
+                return JsonResponse({"status": 401, "message": f"Compilation Error:\n{error_message}"}, status=401)
 
             resultados = []
             for i, entrada in enumerate(entradas_prueba):
@@ -144,4 +150,3 @@ def submit_c_code(request, problema_id):
                 os.remove(executable_path)
 
     return JsonResponse({"status": 403, "message": "Invalid request"}, status=403)
-
