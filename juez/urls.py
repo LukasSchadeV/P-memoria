@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import lista_problemas, detalle_problema
+from .views import lista_problemas, detalle_problema, execute_c_code, submit_c_code
 
 urlpatterns = [
     path('problemas/', lista_problemas, name='lista_problemas'),
-    path('problema/<int:problema_id>/', detalle_problema, name='detalle_problema'),  # Ruta de detalle
+    path('problema/<int:problema_id>/', detalle_problema, name='detalle_problema'),
+    path('problema/<int:problema_id>/execute/', execute_c_code, name="execute_c_code"),
+    path('problema/<int:problema_id>/submit/', submit_c_code, name="submit_c_code"),
 ]

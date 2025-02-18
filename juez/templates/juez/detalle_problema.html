@@ -4,11 +4,8 @@
 <div class="container mt-4">
     <h1>{{ problema.titulo }}</h1>
     
-    <h3>Descripción</h3>
-    <p>{{ problema.descripcion }}</p>
-
     <h3>Enunciado</h3>
-    <p>{{ problema.enunciado }}</p>  <!-- Mostramos el enunciado solo aquí -->
+    <p>{{ problema.enunciado }}</p>
 
     <h3>Ejemplo de Entrada</h3>
     <pre>{{ problema.entrada_ejemplo }}</pre>
@@ -16,6 +13,61 @@
     <h3>Ejemplo de Salida</h3>
     <pre>{{ problema.salida_ejemplo }}</pre>
 
-    <a href="{% url 'pagina_inicio' %}" class="btn btn-primary mt-3">Volver</a>
+    <h2 class="mt-4">Code Editor</h2>
+    <textarea id="code-editor" class="w-100 h-40 p-2 bg-dark text-white rounded" placeholder="Escribe tu código en C aquí..."></textarea>
+    
+    <div class="d-flex justify-content-between mt-3">
+        <button id="run-code" class="btn btn-primary">Ejecutar</button>
+        <button id="submit-code" class="btn btn-success">Enviar</button>
+    </div>
+    
+    <h3 class="mt-4">Salida</h3>
+    <pre id="output" class="bg-light text-dark p-2 rounded h-20 overflow-auto"></pre>
+
+    <a href="{% url 'pagina_inicio' %}" class="btn btn-secondary mt-3">Volver</a>
 </div>
+
+<script>
+    document.getElementById('run-code').addEventListener('click', async function() {
+      const code = document.getElementById('code-editor').value;
+      const outputElement = document.getElementById('output');
+      const problemId = '{{ problema.id }}';
+      
+      outputElement.textContent = 'Ejecutando...';
+      
+      try {
+        const response = await fetch(`/juez/problema/${problemId}/execute/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language: 'c', code: code })
+        });
+        
+        const result = await response.json();
+        outputElement.textContent = result.output || 'Error en la ejecución.';
+      } catch (error) {
+        outputElement.textContent = 'Error: ' + error.message;
+      }
+    });
+
+    document.getElementById('submit-code').addEventListener('click', async function() {
+      const code = document.getElementById('code-editor').value;
+      const outputElement = document.getElementById('output');
+      const problemId = '{{ problema.id }}';
+      
+      outputElement.textContent = 'Enviando...';
+      
+      try {
+        const response = await fetch(`/juez/problema/${problemId}/submit/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language: 'c', code: code })
+        });
+        
+        const result = await response.json();
+        outputElement.textContent = `Estado: ${result.status} - ${result.message}`;
+      } catch (error) {
+        outputElement.textContent = 'Error: ' + error.message;
+      }
+    });
+</script>
 {% endblock %}
