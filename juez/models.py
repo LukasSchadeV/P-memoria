@@ -6,6 +6,7 @@ class Problema(models.Model):
     enunciado = models.TextField(default="Enunciado no disponible")  # Texto descriptivo del problema
     entrada_ejemplo = models.TextField(blank=True, null=True)  # Entrada de ejemplo (mostrada en el HTML)
     salida_ejemplo = models.TextField(blank=True, null=True)  # Salida de ejemplo (mostrada en el HTML)
+    ip_creacion = models.GenericIPAddressField(blank=True, null=True)  # Guardar IP de quien creó el problema
     
     # Campos para verificar el código (no se muestran en el HTML)
     entradas_prueba = models.TextField(help_text="Entradas de prueba separadas por líneas")
