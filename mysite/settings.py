@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-^5mw92t+p(%c@o!490-wz47ry)m_yy1en18k^27^a(cddh60t*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['192.168.3.9', 'localhost', '127.0.0.1'] #IP DE LA MAQUINA VIRTUAL
 
 # Application definition
 
@@ -105,9 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-cl'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Santiago'
 
 USE_I18N = True
 
@@ -123,3 +122,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/'  # Redirigir a la página principal después de iniciar sesión
+LOGOUT_REDIRECT_URL = '/'  # Redirigir después de cerrar sesión
+
