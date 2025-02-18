@@ -3,9 +3,13 @@
 {% block content %}
 <div class="container mt-4">
     <h1>{{ problema.titulo }}</h1>
-    <p><strong>Descripción:</strong></p>
-    <p>{{ problema.descripcion }}</p>
     
+    <h3>Descripción</h3>
+    <p>{{ problema.descripcion }}</p>
+
+    <h3>Enunciado</h3>
+    <p>{{ problema.enunciado }}</p>  <!-- Mostramos el enunciado solo aquí -->
+
     <h3>Ejemplo de Entrada</h3>
     <pre>{{ problema.entrada_ejemplo }}</pre>
 
