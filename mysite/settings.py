@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'inicio',  # Agregamos nuestra nueva app
+    'inicio',  # La app para el menú
+    'juez',    # La nueva app para manejar los envíos de código
 ]
 
 MIDDLEWARE = [

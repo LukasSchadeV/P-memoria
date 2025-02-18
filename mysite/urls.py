@@ -13,7 +13,7 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+
 from django.contrib import admin
 from django.urls import path
 from inicio.views import pagina_inicio
@@ -21,4 +21,13 @@ from inicio.views import pagina_inicio
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', pagina_inicio, name='pagina_inicio'),  # Página de inicio
+]
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('inicio.urls')),  # Página principal
+    path('juez/', include('juez.urls')),  # Rutas del juez virtual
 ]

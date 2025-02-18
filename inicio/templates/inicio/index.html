@@ -23,7 +23,7 @@
         <h2 class="mt-4">Problemas Disponibles</h2>
         <div class="list-group">
             {% for problema in problemas %}
-                <a href="#" class="list-group-item list-group-item-action">
+                <a href="{% url 'detalle_problema' problema.id %}" class="list-group-item list-group-item-action">
                     <h5 class="mb-1">{{ problema.titulo }}</h5>
                     <p class="mb-1">{{ problema.descripcion|truncatewords:20 }}</p>
                 </a>

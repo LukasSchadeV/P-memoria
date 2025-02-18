@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Lista de Envíos</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Archivo</th>
+                <th>Resultado</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for envio in envios %}
+                <tr>
+                    <td>{{ envio.id }}</td>
+                    <td>{{ envio.codigo.name }}</td>
+                    <td>{{ envio.resultado }}</td>
+                    <td>{{ envio.fecha_envio }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">No hay envíos aún.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
