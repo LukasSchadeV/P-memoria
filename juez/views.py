@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Problema
 
 def lista_problemas(request):
@@ -8,5 +8,5 @@ def lista_problemas(request):
 
 def detalle_problema(request, problema_id):
     """ Muestra los detalles de un problema específico """
-    problema = Problema.objects.get(id=problema_id)
+    problema = get_object_or_404(Problema, id=problema_id)  # Si no existe, muestra error 404
     return render(request, 'juez/detalle_problema.html', {'problema': problema})
