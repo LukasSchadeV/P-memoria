@@ -1,8 +1,7 @@
-from django.shortcuts import render
-from juez.models import Problema  # Asegúrate de que juez está en INSTALLED_APPS
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.shortcuts import render, redirect
+from juez.models import Problema, Tag  # Asegúrate de que juez está en INSTALLED_APPS
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from .forms import RegistroForm  # Importamos el formulario actualizado
 
 def iniciar_sesion(request):
@@ -33,12 +32,24 @@ def registrar_usuario(request):
     
     return render(request, 'inicio/registro.html', {'form': form})
 
-
-
-
 def pagina_inicio(request):
+    """ Muestra la lista de problemas con opción de búsqueda y filtro por tags """
+    query = request.GET.get("q", "").strip()
+    tag_filter = request.GET.get("tag", "").strip()
+
     problemas = Problema.objects.all().order_by('-id')
-    return render(request, 'inicio/index.html', {'problemas': problemas})
+    
+    # Filtrar por título si hay búsqueda
+    if query:
+        problemas = problemas.filter(titulo__icontains=query)
+
+    # Filtrar por tag si se seleccionó uno
+    if tag_filter:
+        problemas = problemas.filter(tags__nombre__iexact=tag_filter)
+
+    tags = Tag.objects.all()
+    
+    return render(request, 'inicio/index.html', {'problemas': problemas, 'tags': tags, 'query': query, 'tag_filter': tag_filter})
 
 def lista_problemas(request):
     problemas = Problema.objects.all()

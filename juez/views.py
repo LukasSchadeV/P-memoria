@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Problema
+from .models import Problema, Tag
 import subprocess
 import tempfile
 import os
@@ -19,13 +19,27 @@ STATUS_CODES = {
 }
 
 def lista_problemas(request):
-    """ Muestra la lista de problemas disponibles """
+    """ Muestra la lista de problemas con opción de búsqueda y filtro por tags """
+    query = request.GET.get("q", "").strip()
+    tag_filter = request.GET.get("tag", "").strip()
+
     problemas = Problema.objects.all()
-    return render(request, 'juez/lista_problemas.html', {'problemas': problemas})
+    
+    # Filtrar por título si hay búsqueda
+    if query:
+        problemas = problemas.filter(titulo__icontains=query)
+
+    # Filtrar por tag si se seleccionó uno
+    if tag_filter:
+        problemas = problemas.filter(tags__nombre__iexact=tag_filter)
+
+    tags = Tag.objects.all()
+
+    return render(request, 'inicio/index.html', {'problemas': problemas, 'tags': tags, 'query': query, 'tag_filter': tag_filter})
 
 def detalle_problema(request, problema_id):
     """ Muestra los detalles de un problema específico """
-    problema = get_object_or_404(Problema, id=problema_id)  # Si no existe, muestra error 404
+    problema = get_object_or_404(Problema, id=problema_id)
     return render(request, 'juez/detalle_problema.html', {'problema': problema})
 
 @csrf_exempt
@@ -45,7 +59,6 @@ def execute_c_code(request, problema_id):
 
             executable_path = temp_source_path.replace(".c", "")
 
-            # Compilar código C
             compile_process = subprocess.run(
                 ["gcc", temp_source_path, "-o", executable_path],
                 capture_output=True, text=True
@@ -54,7 +67,6 @@ def execute_c_code(request, problema_id):
             if compile_process.returncode != 0:
                 return JsonResponse({"output": "Compilation Error:\n" + compile_process.stderr}, status=401)
 
-            # Ejecutar código compilado
             execute_process = subprocess.run(
                 [executable_path], capture_output=True, text=True, timeout=5
             )
@@ -95,19 +107,15 @@ def submit_c_code(request, problema_id):
 
             executable_path = temp_source_path.replace(".c", "")
 
-            # Compilar código C
             compile_process = subprocess.run(
                 ["gcc", temp_source_path, "-o", executable_path],
                 capture_output=True, text=True
             )
 
             if compile_process.returncode != 0:
-                # Filtrar las rutas del error de compilación
-                error_message = compile_process.stderr
                 error_message = "\n".join(
-                    line for line in error_message.split("\n") if not line.startswith(temp_source_path)
+                    line for line in compile_process.stderr.split("\n") if not line.startswith(temp_source_path)
                 ).strip()
-
                 return JsonResponse({"status": 401, "message": f"Compilation Error:\n{error_message}"}, status=401)
 
             resultados = []
@@ -116,7 +124,6 @@ def submit_c_code(request, problema_id):
                     temp_input.write(entrada.encode())
                     temp_input_path = temp_input.name
 
-                # Ejecutar código con entrada estándar
                 execute_process = subprocess.run(
                     [executable_path],
                     stdin=open(temp_input_path, "r"),
@@ -125,7 +132,6 @@ def submit_c_code(request, problema_id):
                     timeout=5
                 )
 
-                # Normalizar la salida eliminando espacios y saltos de línea extra
                 actual_output = execute_process.stdout.strip()
                 expected_output = salidas_esperadas[i].strip()
 
