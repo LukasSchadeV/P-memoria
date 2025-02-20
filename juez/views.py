@@ -6,6 +6,8 @@ import os
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
+
 
 STATUS_CODES = {
     200: "OK",
@@ -17,6 +19,24 @@ STATUS_CODES = {
     404: "FILE NOT FOUND",
     408: "TIME LIMIT EXCEEDED"
 }
+
+def autocomplete_problemas(request):
+    """ Retorna sugerencias de problemas según el texto ingresado """
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # Solo AJAX
+        query = request.GET.get('q', '').strip()
+        
+        print("🔍 Recibida consulta:", query)  # 📌 Depuración en terminal
+
+        problemas = Problema.objects.filter(titulo__icontains=query)[:5]  # Buscar en títulos
+        sugerencias = list(problemas.values_list('titulo', flat=True))
+
+        print("📋 Resultados encontrados:", sugerencias)  # 📌 Depuración en terminal
+        
+        return JsonResponse({"sugerencias": sugerencias}, safe=False)
+
+    return JsonResponse({"sugerencias": []}, safe=False)
+
+
 
 def lista_problemas(request):
     """ Muestra la lista de problemas con opción de búsqueda y filtro por tags """
