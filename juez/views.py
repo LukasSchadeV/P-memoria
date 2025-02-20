@@ -64,7 +64,7 @@ def detalle_problema(request, problema_id):
 
 @csrf_exempt
 def execute_c_code(request, problema_id):
-    """Ejecuta el código sin verificar la salida"""
+    """Ejecuta el código con la entrada de ejemplo del problema"""
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -73,12 +73,16 @@ def execute_c_code(request, problema_id):
             if not code:
                 return JsonResponse({"output": "Error: No code provided"}, status=400)
 
+            problema = get_object_or_404(Problema, id=problema_id)
+            entrada_ejemplo = problema.entrada_ejemplo.strip()
+
             with tempfile.NamedTemporaryFile(delete=False, suffix=".c") as temp_source:
                 temp_source.write(code.encode())
                 temp_source_path = temp_source.name
 
             executable_path = temp_source_path.replace(".c", "")
 
+            # ✅ Compilar código C
             compile_process = subprocess.run(
                 ["gcc", temp_source_path, "-o", executable_path],
                 capture_output=True, text=True
@@ -87,11 +91,27 @@ def execute_c_code(request, problema_id):
             if compile_process.returncode != 0:
                 return JsonResponse({"output": "Compilation Error:\n" + compile_process.stderr}, status=401)
 
+            # ✅ Crear archivo temporal con la entrada de ejemplo
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_input:
+                temp_input.write((entrada_ejemplo + "\n").encode())
+                temp_input_path = temp_input.name
+
+            # ✅ Ejecutar el código con la entrada de ejemplo
             execute_process = subprocess.run(
-                [executable_path], capture_output=True, text=True, timeout=5
+                [executable_path],
+                stdin=open(temp_input_path, "rb"),
+                capture_output=True,
+                text=True,
+                timeout=5
             )
 
-            return JsonResponse({"output": execute_process.stdout + execute_process.stderr}, status=200)
+            # ✅ Capturar la salida normal y de error
+            output = execute_process.stdout + execute_process.stderr
+
+            # Limpiar archivos temporales
+            os.remove(temp_input_path)
+
+            return JsonResponse({"output": output.strip()}, status=200)
 
         except subprocess.TimeoutExpired:
             return JsonResponse({"output": "Execution timed out."}, status=408)
@@ -102,6 +122,7 @@ def execute_c_code(request, problema_id):
                 os.remove(executable_path)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 @csrf_exempt
 def submit_c_code(request, problema_id):
