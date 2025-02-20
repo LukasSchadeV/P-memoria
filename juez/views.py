@@ -115,18 +115,22 @@ def submit_c_code(request, problema_id):
                 return JsonResponse({"status": 403, "message": "Invalid submission"}, status=403)
 
             problema = get_object_or_404(Problema, id=problema_id)
-            entradas_prueba = problema.entradas_prueba.strip().split("\n")
-            salidas_esperadas = problema.salidas_esperadas.strip().split("\n")
+
+            # ✅ Separar los casos de prueba correctamente
+            entradas_prueba = [entrada.strip().replace("\r\n", "\n") for entrada in problema.entradas_prueba.split("@@@")]
+            salidas_esperadas = [salida.strip().replace("\r\n", "\n") for salida in problema.salidas_esperadas.split("@@@")]
 
             if len(entradas_prueba) != len(salidas_esperadas):
                 return JsonResponse({"status": 403, "message": "Mismatch between input and expected output count"}, status=403)
 
+            # ✅ Crear archivo temporal con el código fuente
             with tempfile.NamedTemporaryFile(delete=False, suffix=".c") as temp_source:
                 temp_source.write(code.encode())
                 temp_source_path = temp_source.name
 
             executable_path = temp_source_path.replace(".c", "")
 
+            # ✅ Compilar código C
             compile_process = subprocess.run(
                 ["gcc", temp_source_path, "-o", executable_path],
                 capture_output=True, text=True
@@ -141,18 +145,20 @@ def submit_c_code(request, problema_id):
             resultados = []
             for i, entrada in enumerate(entradas_prueba):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_input:
-                    temp_input.write(entrada.encode())
+                    temp_input.write((entrada + "\n").encode())  # Asegurar que la entrada finaliza con un salto de línea
                     temp_input_path = temp_input.name
 
+                # ✅ Ejecutar el código con entrada estándar (`stdin`)
                 execute_process = subprocess.run(
                     [executable_path],
-                    stdin=open(temp_input_path, "r"),
+                    stdin=open(temp_input_path, "rb"),
                     capture_output=True,
                     text=True,
                     timeout=5
                 )
 
-                actual_output = execute_process.stdout.strip()
+                # ✅ Normalizar la salida obtenida para evitar problemas de formato entre SOs
+                actual_output = execute_process.stdout.strip().replace("\r\n", "\n") if execute_process.stdout else "Salida vacía"
                 expected_output = salidas_esperadas[i].strip()
 
                 if actual_output == expected_output:
@@ -176,3 +182,4 @@ def submit_c_code(request, problema_id):
                 os.remove(executable_path)
 
     return JsonResponse({"status": 403, "message": "Invalid request"}, status=403)
+
